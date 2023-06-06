@@ -1,0 +1,32 @@
+{
+  "name": "gym-cloud-api",
+  "version": "1.0.0",
+  "description": "API enables users to perform CRUD operations on GYM and MEMBER entities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "devStart": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brysonrivera/gym-cloud-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brysonrivera/gym-cloud-api/issues"
+  },
+  "homepage": "https://github.com/brysonrivera/gym-cloud-api#readme",
+  "dependencies": {
+    "@google-cloud/datastore": "^7.5.1",
+    "dotenv": "^16.1.4",
+    "express": "^4.18.2",
+    "express-openid-connect": "^2.16.0",
+    "jsonwebtoken": "^9.0.0",
+    "jwks-rsa": "^3.0.1",
+    "nodemon": "^2.0.22",
+    "pug": "^3.0.2"
+  }
+}
