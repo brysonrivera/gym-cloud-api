@@ -9,13 +9,16 @@ html(lang="en")
     body 
         nav(class="navbar navbar-expand-lg bg-body-tertiary")
             div(class="container-fluid")
-                a(class="navbar-brand fs-1" href="#") WELCOME
+                a(class="navbar-brand fs-1" href="#") Welcome to the SlimGym Manager Portal
                 div(class="navbar-collapse justify-content-end" id="navbarSupportedContent")
                     ul(class="navbar-nav")
                         li(class="nav-item")
                             a(href="/login" class="nav-link active") Login / Sign-up
 
     div
-        h3 Login to access your JSON Web Token. Add it to your Authroization Header to access the gym API with GYM and MEMBER endpoints.
+        h3 Please Login to access GYM, MEMBER and USER endpoints. 
+        h3 Once Logged in you will be given a JSON Web Token (JWT). 
+        h3 Please include --Authorization: Bearer 'JWT'-- in every request to the API. 
+        h3 The two endpoints are /gyms, /members, /users.
 
         

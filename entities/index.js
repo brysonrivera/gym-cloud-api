@@ -1,6 +1,7 @@
 const express = require('express');
-const gym = require('./gym/gym');
-const member = require('./member/member');
+const gymRouter = require('./gym/gymRouter');
+const memberRouter = require('./member/memberRouter');
+const userRouter = require('./user/userRouter');
 const authenticateToken = require('../auth/authenticateToken');
 
 const api = express.Router();
@@ -10,7 +11,8 @@ const api = express.Router();
 //       still need to verify the user can access this resource.
 api.use(authenticateToken);
 
-api.use('/gyms', gym);
-api.use('/members', member);
+api.use('/gyms', gymRouter);
+api.use('/members', memberRouter);
+api.use('/users', userRouter);
 
 module.exports = api;
