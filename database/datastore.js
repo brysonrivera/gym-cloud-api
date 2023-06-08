@@ -26,15 +26,17 @@ const updateItemInDataStore = async (data, key) => {
 }
 
 const urlConstructor = (domain, path, id) => {
-    if (id) return "https://" + domain + path + "/" + id
-    else return "https://" + domain + path
+    if (id) return "http://" + domain + ":3000" + path + "/" + id;
+    else return "http://" + domain + ":3000" + path;
 }
 
 module.exports = {
     datastore,
+    fromDatastore,
     saveItemInDataStore,
     updateItemInDataStore,
     urlConstructor,
+    Datastore,
     userKind: 'USER',
     gymKind: 'GYM',
     memberKind: 'MEMBER'

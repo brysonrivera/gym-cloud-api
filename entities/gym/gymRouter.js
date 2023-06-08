@@ -1,7 +1,7 @@
 const express = require('express');
 const gymRouter = express.Router();
 const { datastore, gymKind, userKind } = require('../../database/datastore');
-const { createGym } = require('../../models/gymModel');
+const { createGym, getGyms } = require('../../models/gymModel');
 const authenticateToken = require('../../auth/authenticateToken');
 
 gymRouter.post('/', authenticateToken, async (req, res) => {
@@ -44,6 +44,18 @@ gymRouter.post('/', authenticateToken, async (req, res) => {
     }
     else { res.status(500).send('Content type got messed up!') }
 
+});
+
+gymRouter.get('/', async (req, res) => {
+    getGyms(req)
+        .then(items => {
+            console.log(items);
+            res.status(200).json(items);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(400).end();
+        });
 });
 
 
