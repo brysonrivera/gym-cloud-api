@@ -1,7 +1,7 @@
 const express = require('express');
 const gymRouter = express.Router();
 const { datastore, gymKind, userKind } = require('../../database/datastore');
-const { createGym, getGyms } = require('../../models/gymModel');
+const { createEntity, getEntities, getEntity } = require('../../models/objectModel');
 const authenticateToken = require('../../auth/authenticateToken');
 
 gymRouter.post('/', authenticateToken, async (req, res) => {
@@ -13,7 +13,7 @@ gymRouter.post('/', authenticateToken, async (req, res) => {
 
     else if (accept == 'application/json') {
         try {
-            console.log(req);
+
             if (Object.keys(req.body).length !== 6) {
                 return res.status(400).json({ err: "The request object is missing at least one of the required attributes" });
             }
@@ -26,6 +26,8 @@ gymRouter.post('/', authenticateToken, async (req, res) => {
                 (!(req.body.manager_id))) {
                 return res.status(400).json({ err: "Request includes incorrect attributes" })
             }
+            // MAKE SURE JWT SUB PROPERTY MATCHES MANAGER_ID PROPERTY
+            if (req.user.sub !== req.body.manager_id) return res.status(403).json({ err: "User not authorized to add gym to Datastore. manager_id does not match client credentials" })
 
             // confirm that the manager_id provided is a valid user
             const query = datastore.createQuery(userKind).filter('unique_id', '=', req.body.manager_id);
@@ -34,12 +36,12 @@ gymRouter.post('/', authenticateToken, async (req, res) => {
 
             // POST Request has been validated
             // Add Gym to Datastore
-            const item = await createGym(req)
+            const item = await createEntity(req, gymKind)
             console.log(item);
             res.status(201).json(item)
         } catch (error) {
             console.error(error)
-            res.status(400).send("Error completing request");
+
         }
     }
     else { res.status(500).send('Content type got messed up!') }
@@ -47,7 +49,7 @@ gymRouter.post('/', authenticateToken, async (req, res) => {
 });
 
 gymRouter.get('/', async (req, res) => {
-    getGyms(req)
+    getEntities(req, gymKind, null)
         .then(items => {
             console.log(items);
             res.status(200).json(items);
@@ -58,5 +60,20 @@ gymRouter.get('/', async (req, res) => {
         });
 });
 
+gymRouter.get('/:gym_id', (req, res) => {
+    const accepts = req.accepts('application/json');
+    if (!accepts) {
+        res.status(406).send('Not Acceptable');
+    } else if (accepts === 'application/json') {
+        getEntity(req, gymKind, req.params.gym_id)
+            .then(gym => {
+                res.status(200).json(gym);
+            })
+            .catch(err => {
+                console.error(err);
+                res.status(404).send("No Gym with gym_id exists");
+            });
+    }
+});
 
 module.exports = gymRouter;

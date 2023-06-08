@@ -1,18 +1,15 @@
 const { datastore,
     saveItemInDataStore,
-    updateItemInDataStore,
     Datastore,
-    gymKind,
-    userKind,
     urlConstructor,
     fromDatastore } = require('../database/datastore');
 const pageSize = 5;
-const createGym = async (req) => {
-    let gym = {
+const createEntity = async (req, kind) => {
+    let data = {
         ...req.body,
     }; // only load, name, length, and type are saved in DataStore
-    const key = datastore.key(gymKind);
-    const itemAdded = await saveItemInDataStore(gym, key);
+    const key = datastore.key(kind);
+    const itemAdded = await saveItemInDataStore(data, key);
 
     // self property is not stored in datastore
     // url to get to boat we just created is generated on the fly. Not saved in Datastore
@@ -20,8 +17,15 @@ const createGym = async (req) => {
     return itemAdded
 }
 
-const getGyms = async (req) => {
-    let query = datastore.createQuery(gymKind).limit(pageSize);
+const getEntities = async (req, kind, filterArr) => {
+    let query = datastore.createQuery(kind);
+
+    if (filterArr) {
+        const [property, operator, value] = filterArr;
+        query.filter(property, operator, value)
+    }
+
+    query.limit(pageSize);
     const results = {};
 
     if (Object.keys(req.query).includes("cursor")) {
@@ -29,10 +33,10 @@ const getGyms = async (req) => {
     }
     const entities = await datastore.runQuery(query);
 
-    results.gyms = entities[0].map(fromDatastore);
+    results.entities = entities[0].map(fromDatastore);
 
-    results.gyms.forEach(gym => {
-        gym.self = urlConstructor(req.hostname, req.baseUrl, gym.id);
+    results.entities.forEach(entity => {
+        entity.self = urlConstructor(req.hostname, req.baseUrl, entity.id);
     });
     if (entities[1].moreResults !== Datastore.NO_MORE_RESULTS) {
         results.next = urlConstructor(req.hostname, req.baseUrl, null,) + "?cursor=" + encodeURIComponent(entities[1].endCursor);
@@ -44,7 +48,17 @@ const getGyms = async (req) => {
     return results
 }
 
+const getEntity = async (req, kind, id) => {
+    const key = datastore.key([kind, parseInt(id, 10)]);
+    const [entity] = await datastore.get(key);
+    if (!entity) throw new Error();
+    const result = fromDatastore(entity)
+    result.self = urlConstructor(req.hostname, req.baseUrl, result.id)
+    return result
+}
+
 module.exports = {
-    createGym,
-    getGyms
+    createEntity,
+    getEntities,
+    getEntity
 }
