@@ -12,6 +12,7 @@ app.set('view engine', 'pug');
 
 
 app.use(auth(config));
+app.use(express.json()) // for parsing application/json
 
 app.get('/profile', requiresAuth(), (req, res) => {
     res.send(JSON.stringify(req.oidc.user));
@@ -30,12 +31,10 @@ app.get('/', async (req, res) => {
                 email: req.oidc.user.email,
                 unique_id: req.oidc.user.sub
             };
-
             const entity = {
                 key: taskKey,
                 data: task
             };
-
             // upsert overwrites an entity if it already exists in Datastore
             await datastore.upsert(entity);
         }

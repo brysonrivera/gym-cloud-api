@@ -14,7 +14,7 @@ const authenticateToken = (req, res, next) => {
         if (token == null) return res.status(401).send("Send Authorization Token to be granted access to requested resource");
 
         const decodedToken = jwt.decode(token, { complete: true });
-        if (!decodedToken) res.status(401).send("Send a Valid Authorization Token to be granted access to requested resource");
+        if (!decodedToken) return res.status(401).send("Send a Valid Authorization Token to be granted access to requested resource");
         const kid = decodedToken.header.kid;
         client.getSigningKey(kid, (err, key) => {
             if (err) {
@@ -25,7 +25,6 @@ const authenticateToken = (req, res, next) => {
             jwt.verify(token, signingKey, (err, user) => {
                 if (err) return res.sendStatus(403);
                 req.user = user;
-                console.log(req.user);
                 next();
             });
         });
