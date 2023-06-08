@@ -2,7 +2,7 @@ const express = require('express');
 const member = express.Router();
 const authenticateToken = require('../../auth/authenticateToken');
 const { datastore, memberKind, gymKind } = require('../../database/datastore');
-const { createEntity, getEntities } = require('../../models/objectModel');
+const { createEntity, getEntities, getEntity } = require('../../models/objectModel');
 
 member.use(authenticateToken)
 
@@ -53,16 +53,42 @@ member.post('/', async (req, res) => {
 });
 
 member.get('/', (req, res) => {
-    getEntities(req, memberKind, ["manager_id", "=", req.user.sub])
-        .then(items => {
-            console.log(items);
-            res.status(200).json(items);
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(400).end();
-        });
+    const accepts = req.accepts('application/json');
+    if (!accepts) {
+        res.status(406).send('Not Acceptable');
+    } else if (accepts === 'application/json') {
+        getEntities(req, memberKind, ["manager_id", "=", req.user.sub])
+            .then(items => {
+                console.log(items);
+                res.status(200).json(items);
+            })
+            .catch(err => {
+                console.error(err);
+                res.status(400).end();
+            });
+    }
 });
+
+member.get('/:member_id', (req, res) => {
+    const accepts = req.accepts('application/json');
+    if (!accepts) {
+        res.status(406).send('Not Acceptable');
+    } else if (accepts === 'application/json') {
+        getEntity(req, memberKind, req.params.member_id)
+            .then(item => {
+                if (item.manager_id !== req.user.sub) return res.status(403).json({ err: "User is not authorized to view this members information. Users can only view members that are part of their gym." })
+                res.status(200).json(item);
+            })
+            .catch(err => {
+                console.error(err);
+                res.status(404).json({ err: "No member with member_id exists" });
+            });
+    }
+});
+
+member.delete(':/member_id', (req, res) => {
+
+})
 
 
 module.exports = member;

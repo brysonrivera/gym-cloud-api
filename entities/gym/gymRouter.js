@@ -48,16 +48,21 @@ gymRouter.post('/', authenticateToken, async (req, res) => {
 
 });
 
-gymRouter.get('/', async (req, res) => {
-    getEntities(req, gymKind, null)
-        .then(items => {
-            console.log(items);
-            res.status(200).json(items);
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(400).end();
-        });
+gymRouter.get('/', (req, res) => {
+    const accepts = req.accepts('application/json');
+    if (!accepts) {
+        res.status(406).send('Not Acceptable');
+    } else if (accepts === 'application/json') {
+        getEntities(req, gymKind, null)
+            .then(items => {
+                console.log(items);
+                res.status(200).json(items);
+            })
+            .catch(err => {
+                console.error(err);
+                res.status(400).end();
+            });
+    }
 });
 
 gymRouter.get('/:gym_id', (req, res) => {

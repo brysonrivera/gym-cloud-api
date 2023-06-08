@@ -31,9 +31,7 @@ const authenticateToken = (req, res, next) => {
     } catch (error) {
         console.error(error)
         return res.sendStatus(400);
-
     }
-
 }
 
 
