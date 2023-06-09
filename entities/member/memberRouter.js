@@ -2,7 +2,7 @@ const express = require('express');
 const member = express.Router();
 const authenticateToken = require('../../auth/authenticateToken');
 const { datastore, memberKind, gymKind } = require('../../database/datastore');
-const { createEntity, getEntities, getEntity } = require('../../models/objectModel');
+const { createEntity, getEntities, getEntity, deleteEntity } = require('../../models/objectModel');
 
 member.use(authenticateToken)
 
@@ -86,9 +86,26 @@ member.get('/:member_id', (req, res) => {
     }
 });
 
-member.delete(':/member_id', (req, res) => {
+member.delete('/:member_id', async (req, res) => {
+    // verify member entity exists and that the user has authorization to delete
+    try {
+        const item = await getEntity(req, memberKind, req.params.member_id);
+        if (item.manager_id !== req.user.sub) {
+            return res.status(403).json({ err: "User is not authorized to delete this member. Users can only delete members that belong to their gym" })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(404).json({ err: "No member with member_id exists" })
+    }
+    try {
+        await deleteEntity(memberKind, req.params.member_id);
+        res.sendStatus(204);
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ err: "Error Deleting Member." })
+    }
 
-})
+});
 
 
 module.exports = member;

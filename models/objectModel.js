@@ -57,8 +57,14 @@ const getEntity = async (req, kind, id) => {
     return result
 }
 
+const deleteEntity = async (kind, id) => {
+    const key = datastore.key([kind, parseInt(id, 10)]);
+    const [result] = await datastore.delete(key);
+    if (!result || result.indexUpdates === 0) throw new Error();
+}
 module.exports = {
     createEntity,
     getEntities,
-    getEntity
+    getEntity,
+    deleteEntity
 }
