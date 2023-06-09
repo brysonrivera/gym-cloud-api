@@ -1,12 +1,12 @@
 const express = require('express');
-const member = express.Router();
+const memberRouter = express.Router();
 const authenticateToken = require('../../auth/authenticateToken');
 const { datastore, memberKind, gymKind } = require('../../database/datastore');
 const { createEntity, getEntities, getEntity, deleteEntity } = require('../../models/objectModel');
 
-member.use(authenticateToken)
+memberRouter.use(authenticateToken)
 
-member.post('/', async (req, res) => {
+memberRouter.post('/', async (req, res) => {
     if (req.get('Content-Type') !== 'application/json') {
         return res.status(415).json({ err: 'Server only accepts application/json data' });
     }
@@ -52,7 +52,7 @@ member.post('/', async (req, res) => {
     else { res.status(500).send('Content type got messed up!') }
 });
 
-member.get('/', (req, res) => {
+memberRouter.get('/', (req, res) => {
     const accepts = req.accepts('application/json');
     if (!accepts) {
         res.status(406).send('Not Acceptable');
@@ -69,7 +69,7 @@ member.get('/', (req, res) => {
     }
 });
 
-member.get('/:member_id', (req, res) => {
+memberRouter.get('/:member_id', (req, res) => {
     const accepts = req.accepts('application/json');
     if (!accepts) {
         res.status(406).send('Not Acceptable');
@@ -86,7 +86,7 @@ member.get('/:member_id', (req, res) => {
     }
 });
 
-member.delete('/:member_id', async (req, res) => {
+memberRouter.delete('/:member_id', async (req, res) => {
     // verify member entity exists and that the user has authorization to delete
     try {
         const item = await getEntity(req, memberKind, req.params.member_id);
@@ -104,7 +104,6 @@ member.delete('/:member_id', async (req, res) => {
         console.error(error);
         res.status(400).json({ err: "Error Deleting Member." })
     }
-
 });
 
 
