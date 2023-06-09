@@ -13,7 +13,9 @@ const createEntity = async (req, kind) => {
 
     // self property is not stored in datastore
     // url to get to boat we just created is generated on the fly. Not saved in Datastore
-    itemAdded.self = urlConstructor(req.hostname, req.baseUrl, itemAdded.id)
+
+    if (req.path && req.path !== '/') itemAdded.self = urlConstructor(req.hostname, req.baseUrl + req.path);
+    else itemAdded.self = urlConstructor(req.hostname, req.baseUrl);
     return itemAdded
 }
 
@@ -35,15 +37,23 @@ const getEntities = async (req, kind, filterArr) => {
 
     results.entities = entities[0].map(fromDatastore);
 
+    let base = null;
+    console.log(req.baseUrl);
+    console.log(req.path);
+    if (req.path && req.path !== '/') base = urlConstructor(req.hostname, req.baseUrl + req.path)
+    else base = urlConstructor(req.hostname, req.baseUrl)
+    console.log(base);
+
     results.entities.forEach(entity => {
-        entity.self = urlConstructor(req.hostname, req.baseUrl, entity.id);
+        entity.self = urlConstructor(req.hostname, '/' + kind.toLowerCase() + 's' + '/' + entity.id);
     });
+    console.log(entities[1].moreResults);
     if (entities[1].moreResults !== Datastore.NO_MORE_RESULTS) {
-        results.next = urlConstructor(req.hostname, req.baseUrl, null,) + "?cursor=" + encodeURIComponent(entities[1].endCursor);
+        results.next = base + "?cursor=" + encodeURIComponent(entities[1].endCursor);
     }
-    results.self = urlConstructor(req.hostname, req.baseUrl, null)
+    results.self = base
     if (Object.keys(req.query).includes("cursor")) {
-        results.self = results.self + "cursor=" + encodeURIComponent(req.query.cursor);
+        results.self = base + "?cursor=" + encodeURIComponent(req.query.cursor);
     }
     return results
 }
@@ -53,7 +63,8 @@ const getEntity = async (req, kind, id) => {
     const [entity] = await datastore.get(key);
     if (!entity) throw new Error();
     const result = fromDatastore(entity)
-    result.self = urlConstructor(req.hostname, req.baseUrl, result.id)
+    if (req.path && req.path !== '/') result.self = urlConstructor(req.hostname, req.baseUrl + req.path);
+    else result.self = urlConstructor(req.hostname, req.baseUrl);
     return result
 }
 

@@ -2,6 +2,10 @@
 const { Datastore } = require('@google-cloud/datastore');
 const datastore = new Datastore();
 
+let userKind = 'USER';
+let memberKind = 'MEMBER';
+let gymKind = 'GYM';
+
 const fromDatastore = (item) => {
     item.id = parseInt(item[Datastore.KEY].id, 10);
     return item;
@@ -25,9 +29,8 @@ const updateItemInDataStore = async (data, key) => {
     return data
 }
 
-const urlConstructor = (domain, path, id) => {
-    if (id) return "http://" + domain + ":3000" + path + "/" + id;
-    else return "http://" + domain + ":3000" + path;
+const urlConstructor = (domain, path) => {
+    return "http://" + domain + ":3000" + path;
 }
 
 module.exports = {
@@ -37,8 +40,7 @@ module.exports = {
     updateItemInDataStore,
     urlConstructor,
     Datastore,
-    userKind: 'USER',
-    gymKind: 'GYM',
-    memberKind: 'MEMBER'
-
+    userKind,
+    gymKind,
+    memberKind
 };
