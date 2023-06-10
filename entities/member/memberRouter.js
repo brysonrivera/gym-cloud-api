@@ -30,7 +30,7 @@ memberRouter.post('/', async (req, res) => {
             // confirm that the gym_id provided is a valid entity
             const key = datastore.key([gymKind, parseInt(req.body.gym_id, 10)]);
             const [entity] = await datastore.get(key);
-            if (!entity) return res.status(404).json({ err: "manager_id does not exist in server. Please resend with valid manager_id." });
+            if (!entity) return res.status(404).json({ err: "gym_id does not exist in server. Please resend with valid gym_id." });
 
             // MAKE SURE THIS USER HAS AUTHORIZATION TO ADD MEMBERS TO THIS GYM. 
             // IF JWT SUB PROPERTY MATCHES GYM ENTITIES MANAGER_ID, USER IS AUTHORIZED TO ADD MEMBER
@@ -107,4 +107,4 @@ memberRouter.delete('/:member_id', async (req, res) => {
 });
 
 
-module.exports = member;
+module.exports = memberRouter;
