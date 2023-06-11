@@ -30,7 +30,7 @@ const updateItemInDataStore = async (data, key) => {
 }
 
 const urlConstructor = (domain, path) => {
-    return "http://" + domain + ":3000" + path;
+    return "https://" + domain + path;
 }
 
 module.exports = {

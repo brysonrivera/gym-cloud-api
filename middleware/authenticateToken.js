@@ -11,10 +11,10 @@ const authenticateToken = (req, res, next) => {
 
         const token = authHeader && authHeader.split(' ')[1];
 
-        if (token == null) return res.status(401).send("Send Authorization Token to be granted access to requested resource");
+        if (token == null) return res.status(401).json({ err: "Send Authorization Token to be granted access to requested resource" });
 
         const decodedToken = jwt.decode(token, { complete: true });
-        if (!decodedToken) return res.status(401).send("Send a Valid Authorization Token to be granted access to requested resource");
+        if (!decodedToken) return res.status(401).json({ err: "Send a Valid Authorization Token to be granted access to requested resource" });
         const kid = decodedToken.header.kid;
         client.getSigningKey(kid, (err, key) => {
             if (err) {
