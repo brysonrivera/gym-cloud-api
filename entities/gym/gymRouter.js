@@ -1,7 +1,7 @@
 const express = require('express');
 const gymRouter = express.Router();
 const { datastore, gymKind, userKind, memberKind } = require('../../database/datastore');
-const { createEntity, getEntities, getEntity } = require('../../models/objectModel');
+const { createEntity, getEntities, getEntity, deleteEntity } = require('../../models/objectModel');
 const authenticateToken = require('../../auth/authenticateToken');
 
 gymRouter.post('/', authenticateToken, async (req, res) => {
@@ -250,6 +250,35 @@ gymRouter.patch('/:gym_id', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error(error)
         return res.status(404).json({ err: "No gym with this gym_id exists" })
+    }
+});
+
+gymRouter.delete('/:gym_id', authenticateToken, async (req, res) => {
+    // verify member entity exists and that the user has authorization to delete
+    try {
+        const gym = await getEntity(req, gymKind, req.params.gym_id);
+        if (gym.manager_id !== req.user.sub) {
+            return res.status(403).json({ err: "User is not authorized to delete this member. Users can only delete members that belong to their gym" })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(404).json({ err: "No member with member_id exists" })
+    }
+    try {
+        query = datastore.createQuery(memberKind).filter("gym_id", "=", parseInt(req.params.gym_id, 10));
+        const [members] = await datastore.runQuery(query);
+        if (members.length > 0) return res.status(400).json({ err: "Cannot delete a gym that still has members. Please move members to a new gym before deleting this gym" });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ err: "Error Deleting Member." })
+    }
+
+    try {
+        await deleteEntity(gymKind, req.params.gym_id);
+        res.sendStatus(204);
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ err: "Error Deleting Member." })
     }
 });
 

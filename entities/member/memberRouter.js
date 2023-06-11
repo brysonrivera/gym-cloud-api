@@ -106,5 +106,111 @@ memberRouter.delete('/:member_id', async (req, res) => {
     }
 });
 
+memberRouter.patch('/:member_id', async (req, res) => {
+    let acceptedProperties = new Set(["gym_id", "fname", "lname", "dob", "email"]);
+    const keyPropertiesArray = Object.keys(req.body);
+    if (req.get('Content-Type') !== 'application/json') return res.status(415).json({ err: 'Server only accepts application/json data' });
+    const accept = req.accepts('application/json');
+    if (!accept) return res.status(406).json({ err: 'Requested Media Type Not Applicable' });
+    if (Object.keys(req.body).length > 5) return res.status(400).json({ err: "The request object cannot exceed 5 properties: gym_id, fname, lname, dob, email" });
+    for (const prop of keyPropertiesArray) {
+        if (!(acceptedProperties.has(prop))) return res.status(400).json({ err: "Request body includes properties that are not accepted: gym_id, fname, lname, dob, email" });
+        acceptedProperties.delete(prop);
+    }
+
+    try {
+        const member = await getEntity(req, memberKind, req.params.member_id);
+        if (member.manager_id !== req.user.sub) return res.status(403).json({ err: "User is not authorized to manke any changes to this gym. Please provide a gym_id that belongs to this user" })
+
+        // if request body includes gym_id and gym_ids from body and member entity are different, 
+        // we need to update the manager_id in the member entity too
+        if (req.body.gym_id && req.body.gym_id !== member.gym_id) {
+            // get the gym entity in the request body
+            // extract the manager_id property from gym entity and assign it to the manager_id property of the member entity
+            try {
+                const gym = await getEntity(req, gymKind, req.body.gym_id);
+                member.manager_id = gym.manager_id;
+            } catch (error) {
+                console.error(error);
+                res.status(404).json({ err: "No gym with gym_id found" })
+            }
+        }
+        // update the member properties with the properties from the request only if they are in the body of the request
+        if (req.body.fname) member.fname = req.body.fname;
+        if (req.body.lname) member.lname = req.body.lname;
+        if (req.body.dob) member.dob = req.body.dob;
+        if (req.body.email) member.email = req.body.email;
+        if (req.body.gym_id) member.gym_id = req.body.gym_id;
+
+        // update member in datastore
+        try {
+            await datastore.update(member)
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ err: "Issue running query to update member entities manager_id" });
+
+        }
+        res.status(200).json(member);
+    } catch (error) {
+        console.error(error)
+        return res.status(404).json({ err: "No gym with this gym_id exists" })
+    }
+});
+
+memberRouter.put('/:member_id', async (req, res) => {
+    if (req.get('Content-Type') !== 'application/json') return res.status(415).json({ err: 'Server only accepts application/json data' });
+    const accept = req.accepts('application/json');
+    if (!accept) return res.status(406).json({ err: 'Requested Media Type Not Applicable' });
+    if (Object.keys(req.body).length !== 5) {
+        return res.status(400).json({ err: "The request object is missing or has too many attributes" });
+    }
+    if (
+        (!(req.body.fname)) ||
+        (!(req.body.lname)) ||
+        (!(req.body.email)) ||
+        (!(req.body.dob)) ||
+        (!(req.body.gym_id))) {
+        return res.status(400).json({ err: "Request includes incorrect attributes" })
+    }
+
+    try {
+        const member = await getEntity(req, memberKind, req.params.member_id);
+        if (member.manager_id !== req.user.sub) return res.status(403).json({ err: "User is not authorized to manke any changes to this gym. Please provide a gym_id that belongs to this user" })
+
+        // if gym_ids from body and member entity are different, 
+        // we need to update the manager_id in the member entity too
+        if (req.body.gym_id !== member.gym_id) {
+            // get the gym entity in the request body
+            // extract the manager_id property from gym entity and assign it to the manager_id property of the member entity
+            try {
+                const gym = await getEntity(req, gymKind, req.body.gym_id);
+                member.manager_id = gym.manager_id;
+            } catch (error) {
+                console.error(error);
+                res.status(404).json({ err: "No gym with gym_id found" })
+            }
+        }
+        // update the member properties with the properties from the request only if they are in the body of the request
+        member.fname = req.body.fname;
+        member.lname = req.body.lname;
+        member.dob = req.body.dob;
+        member.email = req.body.email;
+        member.gym_id = req.body.gym_id;
+
+        // update member in datastore
+        try {
+            await datastore.update(member)
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ err: "Issue running query to update member entities manager_id" });
+
+        }
+        res.status(200).json(member);
+    } catch (error) {
+        console.error(error)
+        return res.status(404).json({ err: "No gym with this gym_id exists" })
+    }
+});
+
 
 module.exports = memberRouter;
